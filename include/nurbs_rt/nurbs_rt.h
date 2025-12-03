@@ -10,6 +10,19 @@ using LiteMath::float4x4;
 using LiteMath::BBox3f;
 using index2 = LiteMath::uint2;
 
+struct HitInfo {
+  float t = std::numeric_limits<float>::max();
+  float3 normal;
+  float2 uv;
+  bool hitten() const noexcept { return t < std::numeric_limits<float>::max(); }
+};
+
+struct NewtonParameters {
+  float2 initialGuess = { 0.5f, 0.5f };
+  float eps = 1e-6f;
+  uint32_t maxIterations = 5;
+};
+
 class NurbsSurface {
 public:
   NurbsSurface(const Matrix<float3> &controlPoints,
@@ -26,6 +39,8 @@ public:
   uint32_t uDegree() const noexcept;
   uint32_t vDegree() const noexcept;
   BBox3f boundingBox() const noexcept;
+  HitInfo intersect(const float3 &origin, const float3 &direction,
+                    const NewtonParameters &params = NewtonParameters{}) const;
 
 private:
   Matrix<float4> m_controlPointsWeighted;
