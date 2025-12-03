@@ -153,7 +153,7 @@ void calculateBSplineBasis(float t, uint32_t spanId, const float *knots,
 template <typename T, typename F>
 T evalNurbsCurve(float t, F pointsGenerator, const float *knots,
                  uint32_t knotsCount, uint32_t degree) {
-  assert(degree >= 1 && degree <= MAX_NURBS_DEGREE);
+  assert(degree >= 0 && degree <= MAX_NURBS_DEGREE);
 
   std::array<float, MAX_NURBS_DEGREE + 1> basis = {};
   uint32_t spanId = knotSpan(t, knots, knotsCount, degree);
@@ -169,7 +169,7 @@ T evalNurbsCurve(float t, F pointsGenerator, const float *knots,
 template <typename T, typename F>
 T evalNurbsCurveDerivative(float t, F pointsGenerator, const float *knots,
                            uint32_t knotsCount, uint32_t degree) {
-  assert(degree >= 1 && degree <= MAX_NURBS_DEGREE);
+  assert(degree >= 0 && degree <= MAX_NURBS_DEGREE);
 
   auto derivativePointsGenerator = [&](uint32_t i) -> T {
     float p = static_cast<float>(degree);
