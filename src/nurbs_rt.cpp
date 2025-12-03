@@ -173,7 +173,7 @@ T evalNurbsCurveDerivative(float t, F pointsGenerator, const float *knots,
 
   auto derivativePointsGenerator = [&](uint32_t i) -> T {
     float p = static_cast<float>(degree);
-    float denom = knots[i + degree] - knots[i];
+    float denom = knots[i + degree + 1] - knots[i + 1];
     float coeff = (denom != 0.0f) ? p / denom : 0.0f;
     return coeff * (pointsGenerator(i + 1) - pointsGenerator(i));
   };
@@ -211,7 +211,7 @@ float3 nurbs_rt::NurbsSurface::uDerivative(float u, float v,
     return evalNurbsCurve<float4>(
         v,
         [&](uint32_t vId) { return m_controlPointsWeighted[index2{vId, uId}]; },
-        m_vKnots.data(), m_vKnots.size(), uDegree());
+        m_vKnots.data(), m_vKnots.size(), vDegree());
   };
 
   float4 res4 = evalNurbsCurveDerivative<float4>(u, evalCurveV, m_uKnots.data(),
