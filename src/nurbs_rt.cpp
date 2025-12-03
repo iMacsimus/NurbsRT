@@ -248,18 +248,19 @@ float3 nurbs_rt::NurbsSurface::vDerivative(float u, float v) const {
 }
 
 inline float2 project2planes(float4 P1, float4 P2, float4 point) {
-  return float2{ dot(P1, point), dot(P2, point) };
+  return float2{dot(P1, point), dot(P2, point)};
 }
 
-HitInfo nurbs_rt::NurbsSurface::intersect(const float3 &origin, const float3 &dir,
-                    const NewtonParameters &params) const {
+HitInfo
+nurbs_rt::NurbsSurface::intersect(const float3 &origin, const float3 &dir,
+                                  const NewtonParameters &params) const {
   HitInfo hit = {};
   float2 uv = params.initialGuess;
 
   float3 absDir = LiteMath::abs(dir);
-  float3 ortho_dir1 = (absDir.x > absDir.y && absDir.x > absDir.z) 
-                    ? float3{ -dir.y, dir.x, 0 } 
-                    : float3{ 0, -dir.z, dir.y };
+  float3 ortho_dir1 = (absDir.x > absDir.y && absDir.x > absDir.z)
+                          ? float3{-dir.y, dir.x, 0}
+                          : float3{0, -dir.z, dir.y};
   float3 ortho_dir2 = normalize(cross(ortho_dir1, dir));
   ortho_dir1 = normalize(cross(dir, ortho_dir2));
 
@@ -271,19 +272,22 @@ HitInfo nurbs_rt::NurbsSurface::intersect(const float3 &origin, const float3 &di
   float2 D = project2planes(P1, P2, point);
 
   uint32_t steps_left = params.maxIterations - 1;
-  while (length(D) > params.eps && steps_left>0) {
+  while (length(D) > params.eps && steps_left > 0) {
     --steps_left;
     float2 J[2] = {
-        project2planes(P1, P2, LiteMath::to_float4(uDerivative(uv.x, uv.y, point4), 0.0f)),
-        project2planes(P1, P2, LiteMath::to_float4(vDerivative(uv.x, uv.y, point4), 0.0f))
-    };
+        project2planes(
+            P1, P2, LiteMath::to_float4(uDerivative(uv.x, uv.y, point4), 0.0f)),
+        project2planes(
+            P1, P2,
+            LiteMath::to_float4(vDerivative(uv.x, uv.y, point4), 0.0f))};
 
     float det = J[0][0] * J[1][1] - J[0][1] * J[1][0];
 
     float2 J_inversed[2] = {{J[1][1] / det, -J[0][1] / det},
                             {-J[1][0] / det, J[0][0] / det}};
 
-    uv = uv - (J_inversed[0]*D[0]+J_inversed[1]*D[1]); //mul2x2x2(J_inversed, D);
+    uv = uv - (J_inversed[0] * D[0] +
+               J_inversed[1] * D[1]); // mul2x2x2(J_inversed, D);
     uv.x = LiteMath::clamp(uv.x, m_uKnots.front(), m_uKnots.back());
     uv.y = LiteMath::clamp(uv.y, m_uKnots.front(), m_uKnots.back());
 
@@ -308,7 +312,7 @@ HitInfo nurbs_rt::NurbsSurface::intersect(const float3 &origin, const float3 &di
     normal *= -1.0f;
   }
 
-  hit.t = dot(dir, LiteMath::to_float3(point)-origin);
+  hit.t = dot(dir, LiteMath::to_float3(point) - origin);
   if (hit.t < 0) {
     hit.t = std::numeric_limits<float>::max();
   }
