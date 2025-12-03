@@ -188,7 +188,7 @@ float4 nurbs_rt::NurbsSurface::eval4(float u, float v) const {
   auto evalCurveV = [this, v](uint32_t uId) {
     return evalNurbsCurve<float4>(
         v,
-        [&](uint32_t vId) { return m_controlPointsWeighted[index2{uId, vId}]; },
+        [&](uint32_t vId) { return m_controlPointsWeighted[index2{vId, uId}]; },
         m_vKnots.data(), m_vKnots.size(), vDegree());
   };
 
@@ -210,7 +210,7 @@ float3 nurbs_rt::NurbsSurface::uDerivative(float u, float v,
   auto evalCurveV = [this, v](uint32_t uId) {
     return evalNurbsCurve<float4>(
         v,
-        [&](uint32_t vId) { return m_controlPointsWeighted[index2{uId, vId}]; },
+        [&](uint32_t vId) { return m_controlPointsWeighted[index2{vId, uId}]; },
         m_vKnots.data(), m_vKnots.size(), uDegree());
   };
 
@@ -232,7 +232,7 @@ float3 nurbs_rt::NurbsSurface::vDerivative(float u, float v,
   auto evalCurveDerV = [this, v](uint32_t uId) {
     return evalNurbsCurveDerivative<float4>(
         v,
-        [&](uint32_t vId) { return m_controlPointsWeighted[index2{uId, vId}]; },
+        [&](uint32_t vId) { return m_controlPointsWeighted[index2{vId, uId}]; },
         m_vKnots.data(), m_vKnots.size(), vDegree());
   };
 
