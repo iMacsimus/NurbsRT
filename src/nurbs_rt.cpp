@@ -4,6 +4,7 @@
 #include <array>
 #include <cassert>
 #include <numeric>
+#include <random>
 
 namespace nurbs_rt {
 
@@ -258,7 +259,7 @@ nurbs_rt::NurbsSurface::intersect(const float3 &origin, const float3 &dir,
   float2 uv = params.initialGuess;
 
   auto boxIntersection = m_boundingBox.Intersection(origin, 1.0f/dir, 0.000f, 1e16f);
-  if (boxIntersection.t2 >= boxIntersection.t1) {
+  if (boxIntersection.t1 >= boxIntersection.t2) {
     return hit; // no hit
   }
 
@@ -337,7 +338,7 @@ LiteMath::float2 nurbs_rt::NurbsSurface::vParamsRange() const {
 void drawUniformSamples(const NurbsSurface &surface,
                      LiteImage::Image2D<uint32_t> &image,
                      uint32_t uSamplesCount, uint32_t vSamplesCount,
-                     float4x4 &worldViewProj) {
+                     const float4x4 &worldViewProj) {
   auto uParams = surface.uParamsRange();
   auto vParams = surface.vParamsRange();
 
@@ -362,6 +363,44 @@ void drawUniformSamples(const NurbsSurface &surface,
 
       float4 outputColor = {relU, relV, 0.0f, 1.0f};
       image[index2{uint32_t(x), uint32_t(image.height()-y-1)}] = LiteMath::color_pack_rgba(outputColor);
+    }
+  }
+}
+
+void drawNewtonStochastic(const NurbsSurface &surface,
+                    LiteImage::Image2D<uint32_t> &image,
+                    const float4x4 &view, const float4x4 &proj, 
+                    uint32_t seed) {
+  std::mt19937 rng(seed);
+  std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+  float4x4 projInv = inverse4x4(proj);
+  float4x4 viewInv = inverse4x4(view);
+  for (uint32_t y = 0; y < image.height(); ++y) {
+    for (uint32_t x = 0; x < image.width(); ++x) {
+      float4 rayDir4 = EyeRayDir4f(
+          x + 0.5f, y + 0.5f, image.width(),
+          image.height(), projInv);
+      rayDir4.w = 0.0f;
+      rayDir4 = viewInv * rayDir4;
+
+      float3 rayDir = normalize(to_float3(rayDir4));
+      float3 cameraPos = to_float3(viewInv.col(3));
+
+      auto uRange = surface.uParamsRange();
+      auto vRange = surface.vParamsRange();
+      float u = LiteMath::lerp(uRange.x, uRange.y, dist(rng));
+      float v = LiteMath::lerp(vRange.x, vRange.y, dist(rng));
+
+      NewtonParameters params = {};
+      params.initialGuess = {u, v};
+
+      HitInfo hit = surface.intersect(cameraPos, rayDir, params);
+      if (!hit.hitten()) {
+        continue;
+      }
+
+      float4 outputColor = {hit.uv.x, hit.uv.y, 0.0f, 1.0f};
+      image[index2{x, image.height()-y-1}] = LiteMath::color_pack_rgba(outputColor);
     }
   }
 }

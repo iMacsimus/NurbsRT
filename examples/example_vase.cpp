@@ -26,14 +26,23 @@ int main() {
   nurbs_rt::NurbsSurface surface(points, weights, uKnots, uMults, vKnots, vMults);
 
   LiteImage::Image2D<uint32_t> image(1024, 1024);
-  LiteMath::float4x4 lookAt = LiteMath::lookAt(nurbs_rt::float3(2, 2, 2), nurbs_rt::float3(0, 0, 0), nurbs_rt::float3(0, 1, 0));
+  LiteMath::float3 cameraPos = nurbs_rt::float3(0, 2, 3);
+  LiteMath::float4x4 lookAt = LiteMath::lookAt(cameraPos, nurbs_rt::float3(0, 0, 0), nurbs_rt::float3(0, 1, 0));
   LiteMath::float4x4 projection = LiteMath::perspectiveMatrix(45.0f, 1.0f, 0.001f, 100.0f);
   LiteMath::float4x4 viewProj = projection * lookAt;
-  nurbs_rt::drawUniformSamples(surface, image, 1000, 1000, viewProj);  
 
+  nurbs_rt::drawUniformSamples(surface, image, 1000, 1000, viewProj);  
   std::filesystem::path savePathUniformSamples = std::filesystem::current_path() / "uniform_samples.bmp";
   std::cout << "Saving image to " << savePathUniformSamples.string() << std::endl;
   LiteImage::SaveImage(savePathUniformSamples.string().c_str(), image);
+
+  image.clear(0);
+  for (uint32_t i = 0; i < 10; ++i) {
+    nurbs_rt::drawNewtonStochastic(surface, image, lookAt, projection, i);
+  }
+  std::filesystem::path savePath = std::filesystem::current_path() / "newton.bmp";
+  std::cout << "Saving image to " << savePath.string() << std::endl;
+  LiteImage::SaveImage(savePath.string().c_str(), image);
   
   return 0;
 }
