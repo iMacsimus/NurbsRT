@@ -19,3 +19,9 @@ target_link_libraries(
   ${PROJECT_NAME} PUBLIC 
     LiteMath 
 )
+
+option(BUILD_EXAMPLES "Build examples" ON)
+if(BUILD_EXAMPLES)
+  add_executable(nurbs_rt_example_vase  ${CMAKE_CURRENT_SOURCE_DIR}/examples/example_vase.cpp)
+  target_link_libraries(nurbs_rt_example_vase PUBLIC NurbsRT)
+endif()
