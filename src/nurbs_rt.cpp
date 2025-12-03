@@ -50,11 +50,11 @@ auto flattenKnots(const std::vector<float> &knots,
 }
 
 uint32_t nurbs_rt::NurbsSurface::uDegree() const noexcept {
-  return uint32_t(m_uKnots.size() - 2 - m_controlPointsWeighted.width());
+  return uint32_t(m_uKnots.size() - 1 - m_controlPointsWeighted.height());
 }
 
 uint32_t nurbs_rt::NurbsSurface::vDegree() const noexcept {
-  return uint32_t(m_vKnots.size() - 2 - m_controlPointsWeighted.height());
+  return uint32_t(m_vKnots.size() - 1 - m_controlPointsWeighted.width());
 }
 
 BBox3f nurbs_rt::NurbsSurface::boundingBox() const noexcept {
@@ -71,13 +71,17 @@ nurbs_rt::NurbsSurface::NurbsSurface(const Matrix<float3> &controlPoints,
   auto flattenVknots = flattenKnots(vKnots, vMults);
 
   assert(
-      checkKnotsCount(flattenUknots.size(), controlPoints.width()) &&
+      checkKnotsCount(flattenUknots.size(), controlPoints.height()) &&
       "uKnots count is not correct. Supported degrees: [1, MAX_NURBS_DEGREE]");
   assert(
-      checkKnotsCount(flattenVknots.size(), controlPoints.height()) &&
+      checkKnotsCount(flattenVknots.size(), controlPoints.width()) &&
       "vKnots count is not correct. Supported degrees: [1, MAX_NURBS_DEGREE]");
-  assert(checkKnotsMults(uMults, uDegree()) && "uMults is not correct");
-  assert(checkKnotsMults(vMults, vDegree()) && "vMults is not correct");
+
+  uint32_t udeg = flattenUknots.size() - 1 - controlPoints.height();
+  uint32_t vdeg = flattenVknots.size() - 1 - controlPoints.width();
+
+  assert(checkKnotsMults(uMults, udeg) && "uMults is not correct");
+  assert(checkKnotsMults(vMults, vdeg) && "vMults is not correct");
   assert(checkKnotsIsDifferent(uKnots) &&
          "uKnots must be different. Equal knots are encoded using mults "
          "(multiplicity) array");
@@ -97,11 +101,11 @@ nurbs_rt::NurbsSurface::NurbsSurface(const Matrix<float3> &controlPoints,
   }
 
   m_controlPointsWeighted.resize(controlPoints.width(), controlPoints.height());
-  for (uint32_t i = 0; i < controlPoints.width(); i++) {
-    for (uint32_t j = 0; j < controlPoints.height(); j++) {
-      auto ij = index2{i, j};
-      m_controlPointsWeighted[ij] =
-          LiteMath::to_float4(controlPoints[ij], 1.0f) * weights[ij];
+  for (uint32_t ui = 0; ui < controlPoints.height(); ui++) {
+    for (uint32_t vi = 0; vi < controlPoints.width(); vi++) {
+      auto idx = index2{vi, ui};
+      m_controlPointsWeighted[idx] =
+          LiteMath::to_float4(controlPoints[idx], 1.0f) * weights[idx];
     }
   }
   m_uKnots = flattenUknots;
