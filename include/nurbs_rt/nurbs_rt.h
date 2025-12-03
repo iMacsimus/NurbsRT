@@ -41,7 +41,8 @@ public:
   BBox3f boundingBox() const noexcept;
   HitInfo intersect(const float3 &origin, const float3 &direction,
                     const NewtonParameters &params = NewtonParameters{}) const;
-
+  LiteMath::float2 uParamsRange() const;
+  LiteMath::float2 vParamsRange() const;
 private:
   Matrix<float4> m_controlPointsWeighted;
   std::vector<float> m_uKnots;
@@ -50,5 +51,14 @@ private:
 };
 
 constexpr uint32_t MAX_NURBS_DEGREE = 10;
+
+void drawNewtonStochastic(const NurbsSurface &surface,
+                    LiteImage::Image2D<uint32_t> &image,
+                    float4x4 &worldViewProj);
+
+void drawUniformSamples(const NurbsSurface &surface,
+                     LiteImage::Image2D<uint32_t> &image,
+                     uint32_t uSamplesCount, uint32_t vSamplesCount,
+                     float4x4 &worldViewProj);
 
 } // namespace nurbs_rt

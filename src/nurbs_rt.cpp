@@ -257,6 +257,11 @@ nurbs_rt::NurbsSurface::intersect(const float3 &origin, const float3 &dir,
   HitInfo hit = {};
   float2 uv = params.initialGuess;
 
+  auto boxIntersection = m_boundingBox.Intersection(origin, 1.0f/dir, 0.000f, 1e16f);
+  if (boxIntersection.t2 >= boxIntersection.t1) {
+    return hit; // no hit
+  }
+
   float3 absDir = LiteMath::abs(dir);
   float3 ortho_dir1 = (absDir.x > absDir.y && absDir.x > absDir.z)
                           ? float3{-dir.y, dir.x, 0}
@@ -319,6 +324,46 @@ nurbs_rt::NurbsSurface::intersect(const float3 &origin, const float3 &dir,
   hit.normal = normal;
   hit.uv = uv;
   return hit;
+}
+
+LiteMath::float2 nurbs_rt::NurbsSurface::uParamsRange() const {
+  return {m_uKnots.front(), m_uKnots.back()};
+}
+
+LiteMath::float2 nurbs_rt::NurbsSurface::vParamsRange() const {
+  return {m_vKnots.front(), m_vKnots.back()};
+}
+
+void drawUniformSamples(const NurbsSurface &surface,
+                     LiteImage::Image2D<uint32_t> &image,
+                     uint32_t uSamplesCount, uint32_t vSamplesCount,
+                     float4x4 &worldViewProj) {
+  auto uParams = surface.uParamsRange();
+  auto vParams = surface.vParamsRange();
+
+  for (uint32_t ui = 0; ui < uSamplesCount; ++ui) {
+    for (uint32_t vi = 0; vi < vSamplesCount; ++vi) {
+      float relU = (float)(ui+0.5f) / uSamplesCount;
+      float relV = (float)(vi+0.5f) / vSamplesCount;
+      float u = LiteMath::lerp(uParams[0], uParams[1], relU);
+      float v = LiteMath::lerp(vParams[0], vParams[1], relV);
+      
+      float4 point = LiteMath::to_float4(surface.eval(u, v), 1.0f);
+      point = worldViewProj * point;
+      point /= point.w;
+
+      int x = (int)((point.x+1)/2 * image.width());
+      int y = (int)((point.y+1)/2 * image.height());
+
+      if (!(0 <= x && x < image.width()) || 
+          !(0 <= y && y < image.height())) {
+        continue;
+      }
+
+      float4 outputColor = {relU, relV, 0.0f, 1.0f};
+      image[index2{uint32_t(x), uint32_t(image.height()-y-1)}] = LiteMath::color_pack_rgba(outputColor);
+    }
+  }
 }
 
 } // namespace nurbs_rt
