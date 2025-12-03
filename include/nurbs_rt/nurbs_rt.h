@@ -1,0 +1,39 @@
+#pragma once
+
+#include <Image2d.h>
+#include <LiteMath.h>
+
+namespace nurbs_rt {
+template <typename T> using Matrix = LiteImage::Image2D<T>;
+using LiteMath::float2, LiteMath::float3, LiteMath::float4;
+using LiteMath::float4x4;
+using LiteMath::BBox3f;
+using index2 = LiteMath::uint2;
+
+class NurbsSurface {
+public:
+  NurbsSurface(const Matrix<float3> &controlPoints,
+               const Matrix<float> &weights, const std::vector<float> &uKnots,
+               const std::vector<uint32_t> &uMults,
+               const std::vector<float> &vKnots,
+               const std::vector<uint32_t> &vMults);
+  float4 eval4(float u, float v) const;
+  float3 eval(float u, float v) const;
+  float3 uDerivative(float u, float v) const;
+  float3 vDerivative(float u, float v) const;
+  float3 uDerivative(float u, float v, float4 point4) const;
+  float3 vDerivative(float u, float v, float4 point4) const;
+  uint32_t uDegree() const noexcept;
+  uint32_t vDegree() const noexcept;
+  BBox3f boundingBox() const noexcept;
+
+private:
+  Matrix<float4> m_controlPointsWeighted;
+  std::vector<float> m_uKnots;
+  std::vector<float> m_vKnots;
+  BBox3f m_boundingBox;
+};
+
+constexpr uint32_t MAX_NURBS_DEGREE = 10;
+
+} // namespace nurbs_rt
