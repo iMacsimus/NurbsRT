@@ -155,7 +155,7 @@ T evalNurbsCurve(float t, F pointsGenerator, const float *knots,
                  uint32_t knotsCount, uint32_t degree) {
   assert(degree >= 1 && degree <= MAX_NURBS_DEGREE);
 
-  std::array<float, MAX_NURBS_DEGREE + 1> basis;
+  std::array<float, MAX_NURBS_DEGREE + 1> basis = {};
   uint32_t spanId = knotSpan(t, knots, knotsCount, degree);
   calculateBSplineBasis(t, spanId, knots, knotsCount, degree, basis.data());
 
@@ -183,7 +183,7 @@ T evalNurbsCurveDerivative(float t, F pointsGenerator, const float *knots,
 }
 
 float4 nurbs_rt::NurbsSurface::eval4(float u, float v) const {
-  std::array<float, MAX_NURBS_DEGREE + 1> vBasis, uBasis;
+  std::array<float, MAX_NURBS_DEGREE + 1> vBasis = {}, uBasis = {};
 
   auto evalCurveV = [this, v](uint32_t uId) {
     return evalNurbsCurve<float4>(
@@ -205,7 +205,7 @@ float3 nurbs_rt::NurbsSurface::eval(float u, float v) const {
 
 float3 nurbs_rt::NurbsSurface::uDerivative(float u, float v,
                                            float4 point4) const {
-  std::array<float, MAX_NURBS_DEGREE + 1> vBasis, uBasis;
+  std::array<float, MAX_NURBS_DEGREE + 1> vBasis = {}, uBasis = {};
 
   auto evalCurveV = [this, v](uint32_t uId) {
     return evalNurbsCurve<float4>(
@@ -227,7 +227,7 @@ float3 nurbs_rt::NurbsSurface::uDerivative(float u, float v) const {
 
 float3 nurbs_rt::NurbsSurface::vDerivative(float u, float v,
                                            float4 point4) const {
-  std::array<float, MAX_NURBS_DEGREE + 1> vBasis, uBasis;
+  std::array<float, MAX_NURBS_DEGREE + 1> vBasis = {}, uBasis = {};
 
   auto evalCurveDerV = [this, v](uint32_t uId) {
     return evalNurbsCurveDerivative<float4>(
