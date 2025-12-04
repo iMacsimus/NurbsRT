@@ -41,8 +41,11 @@ public:
   BBox3f boundingBox() const noexcept;
   HitInfo intersect(const float3 &origin, const float3 &direction,
                     const NewtonParameters &params = NewtonParameters{}) const;
-  LiteMath::float2 uParamsRange() const;
-  LiteMath::float2 vParamsRange() const;
+  float2 uParamsRange() const;
+  float2 vParamsRange() const;
+  void reparametrizeU(float2 newRange);
+  void reparametrizeV(float2 newRange);
+  void transform(const float4x4 &transformMatrix);
 private:
   Matrix<float4> m_controlPointsWeighted;
   std::vector<float> m_uKnots;

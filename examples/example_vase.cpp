@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <filesystem>
+#include <cmath>
 
 #include <nurbs_rt/nurbs_rt.h>
 
@@ -30,6 +31,9 @@ int main() {
   LiteMath::float4x4 lookAt = LiteMath::lookAt(cameraPos, nurbs_rt::float3(0, 0, 0), nurbs_rt::float3(0, 1, 0));
   LiteMath::float4x4 projection = LiteMath::perspectiveMatrix(45.0f, 1.0f, 0.001f, 100.0f);
   LiteMath::float4x4 viewProj = projection * lookAt;
+
+  LiteMath::float4x4 transform = LiteMath::rotate4x4Z(3.14f/8);
+  surface.transform(transform);
 
   nurbs_rt::drawUniformSamples(surface, image, 1000, 1000, viewProj);  
   std::filesystem::path savePathUniformSamples = std::filesystem::current_path() / "uniform_samples.bmp";

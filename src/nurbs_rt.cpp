@@ -408,4 +408,40 @@ void drawNewtonStochastic(const NurbsSurface &surface,
   }
 }
 
+void nurbs_rt::NurbsSurface::reparametrizeU(float2 newRange) {
+  auto prevRange = uParamsRange();
+  for (auto &knot: m_uKnots) {
+    float relU = (knot - prevRange.x) / (prevRange.y - prevRange.x);
+    knot = LiteMath::lerp(newRange.x, newRange.y, relU);
+  }
+}
+
+void nurbs_rt::NurbsSurface::reparametrizeV(float2 newRange) {
+  auto prevRange = vParamsRange();
+  for (auto &knot: m_vKnots) {
+    float relV = (knot - prevRange.x) / (prevRange.y - prevRange.x);
+    knot = LiteMath::lerp(newRange.x, newRange.y, relV);
+  }
+}
+
+void nurbs_rt::NurbsSurface::transform(const float4x4 &transformMatrix) {
+  uint32_t w = m_controlPointsWeighted.width();
+  uint32_t h = m_controlPointsWeighted.height();
+  m_boundingBox.boxMin = float3{std::numeric_limits<float>::min()};
+  m_boundingBox.boxMax = float3{std::numeric_limits<float>::max()};
+  for (uint32_t flatId = 0; flatId < w*h; ++flatId) {
+    auto &point = m_controlPointsWeighted.data()[flatId];
+    float weight = point.w;
+    
+    point /= point.w;
+    point = transformMatrix * point;
+    point /= point.w;
+
+    m_boundingBox.boxMin = LiteMath::min(m_boundingBox.boxMin, LiteMath::to_float3(point));
+    m_boundingBox.boxMax = LiteMath::max(m_boundingBox.boxMax, LiteMath::to_float3(point));
+
+    point *= weight;
+  }
+}
+
 } // namespace nurbs_rt
