@@ -295,7 +295,7 @@ nurbs_rt::NurbsSurface::intersect(const float3 &origin, const float3 &dir,
     uv = uv - (J_inversed[0] * D[0] +
                J_inversed[1] * D[1]); // mul2x2x2(J_inversed, D);
     uv.x = LiteMath::clamp(uv.x, m_uKnots.front(), m_uKnots.back());
-    uv.y = LiteMath::clamp(uv.y, m_uKnots.front(), m_uKnots.back());
+    uv.y = LiteMath::clamp(uv.y, m_vKnots.front(), m_vKnots.back());
 
     point4 = eval4(uv.x, uv.y);
     point = point4 / point4.w;
@@ -399,7 +399,10 @@ void drawNewtonStochastic(const NurbsSurface &surface,
         continue;
       }
 
-      float4 outputColor = {hit.uv.x, hit.uv.y, 0.0f, 1.0f};
+      float relU = (hit.uv.x - uRange.x) / (uRange.y - uRange.x);
+      float relV = (hit.uv.y - vRange.x) / (vRange.y - vRange.x);
+
+      float4 outputColor = {relU, relV, 0.0f, 1.0f};
       image[index2{x, image.height()-y-1}] = LiteMath::color_pack_rgba(outputColor);
     }
   }

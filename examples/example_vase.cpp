@@ -15,7 +15,7 @@ int main() {
     1, 0.707107, 1, 0.707107, 1, 0.707107, 1, 0.707107, 1, 
     1, 0.707107, 1, 0.707107, 1, 0.707107, 1, 0.707107, 1
   };
-  std::vector<float> uKnots = {0, 0.5, 1};
+  std::vector<float> uKnots = {3, 3.5, 4};
   std::vector<uint32_t> uMults = {2, 1, 2};
   std::vector<float> vKnots = {0, 0.25, 0.5, 0.75, 1};
   std::vector<uint32_t> vMults = {3, 2, 2, 2, 3};
