@@ -5,9 +5,9 @@
 
 namespace nurbs_rt {
 template <typename T> using Matrix = LiteImage::Image2D<T>;
+using LiteMath::BBox3f;
 using LiteMath::float2, LiteMath::float3, LiteMath::float4;
 using LiteMath::float4x4;
-using LiteMath::BBox3f;
 using index2 = LiteMath::uint2;
 
 struct HitInfo {
@@ -18,7 +18,7 @@ struct HitInfo {
 };
 
 struct NewtonParameters {
-  float2 initialGuess = { 0.5f, 0.5f };
+  float2 initialGuess = {0.5f, 0.5f};
   float eps = 1e-6f;
   uint32_t maxIterations = 5;
 };
@@ -46,6 +46,7 @@ public:
   void reparametrizeU(float2 newRange);
   void reparametrizeV(float2 newRange);
   void transform(const float4x4 &transformMatrix);
+
 private:
   Matrix<float4> m_controlPointsWeighted;
   std::vector<float> m_uKnots;
@@ -56,13 +57,13 @@ private:
 constexpr uint32_t MAX_NURBS_DEGREE = 10;
 
 void drawNewtonStochastic(const NurbsSurface &surface,
-                    LiteImage::Image2D<uint32_t> &image,
-                    const float4x4 &view, const float4x4 &projection,
-                    uint32_t seed = 0);
+                          LiteImage::Image2D<uint32_t> &image,
+                          const float4x4 &view, const float4x4 &projection,
+                          uint32_t seed = 0);
 
 void drawUniformSamples(const NurbsSurface &surface,
-                     LiteImage::Image2D<uint32_t> &image,
-                     uint32_t uSamplesCount, uint32_t vSamplesCount,
-                     const float4x4 &worldViewProj);
+                        LiteImage::Image2D<uint32_t> &image,
+                        uint32_t uSamplesCount, uint32_t vSamplesCount,
+                        const float4x4 &worldViewProj);
 
 } // namespace nurbs_rt

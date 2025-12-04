@@ -84,10 +84,10 @@ nurbs_rt::NurbsSurface::NurbsSurface(const Matrix<float3> &controlPoints,
   assert(checkKnotsMults(uMults, udeg) && "uMults is not correct");
   assert(checkKnotsMults(vMults, vdeg) && "vMults is not correct");
   assert(checkKnotsIsDifferent(uKnots) &&
-         "uKnots must be different. Equal knots are encoded using mults "
+         "uKnots must be different. Equal knots are encoded via mults "
          "(multiplicity) array");
   assert(checkKnotsIsDifferent(vKnots) &&
-         "uKnots must be different. Equal knots are encoded using mults "
+         "uKnots must be different. Equal knots are encoded via mults "
          "(multiplicity) array");
   assert(checkKnotsOrder(uKnots) && "uKnots are not ordered");
   assert(checkKnotsOrder(vKnots) && "vKnots are not ordered");
@@ -258,7 +258,8 @@ nurbs_rt::NurbsSurface::intersect(const float3 &origin, const float3 &dir,
   HitInfo hit = {};
   float2 uv = params.initialGuess;
 
-  auto boxIntersection = m_boundingBox.Intersection(origin, 1.0f/dir, 0.000f, 1e16f);
+  auto boxIntersection =
+      m_boundingBox.Intersection(origin, 1.0f / dir, 0.000f, 1e16f);
   if (boxIntersection.t1 >= boxIntersection.t2) {
     return hit; // no hit
   }
@@ -336,50 +337,49 @@ LiteMath::float2 nurbs_rt::NurbsSurface::vParamsRange() const {
 }
 
 void drawUniformSamples(const NurbsSurface &surface,
-                     LiteImage::Image2D<uint32_t> &image,
-                     uint32_t uSamplesCount, uint32_t vSamplesCount,
-                     const float4x4 &worldViewProj) {
+                        LiteImage::Image2D<uint32_t> &image,
+                        uint32_t uSamplesCount, uint32_t vSamplesCount,
+                        const float4x4 &worldViewProj) {
   auto uParams = surface.uParamsRange();
   auto vParams = surface.vParamsRange();
 
   for (uint32_t ui = 0; ui < uSamplesCount; ++ui) {
     for (uint32_t vi = 0; vi < vSamplesCount; ++vi) {
-      float relU = (float)(ui+0.5f) / uSamplesCount;
-      float relV = (float)(vi+0.5f) / vSamplesCount;
+      float relU = (float)(ui + 0.5f) / uSamplesCount;
+      float relV = (float)(vi + 0.5f) / vSamplesCount;
       float u = LiteMath::lerp(uParams[0], uParams[1], relU);
       float v = LiteMath::lerp(vParams[0], vParams[1], relV);
-      
+
       float4 point = LiteMath::to_float4(surface.eval(u, v), 1.0f);
       point = worldViewProj * point;
       point /= point.w;
 
-      int x = (int)((point.x+1)/2 * image.width());
-      int y = (int)((point.y+1)/2 * image.height());
+      int x = (int)((point.x + 1) / 2 * image.width());
+      int y = (int)((point.y + 1) / 2 * image.height());
 
-      if (!(0 <= x && x < image.width()) || 
-          !(0 <= y && y < image.height())) {
+      if (!(0 <= x && x < image.width()) || !(0 <= y && y < image.height())) {
         continue;
       }
 
       float4 outputColor = {relU, relV, 0.0f, 1.0f};
-      image[index2{uint32_t(x), uint32_t(image.height()-y-1)}] = LiteMath::color_pack_rgba(outputColor);
+      image[index2{uint32_t(x), uint32_t(image.height() - y - 1)}] =
+          LiteMath::color_pack_rgba(outputColor);
     }
   }
 }
 
 void drawNewtonStochastic(const NurbsSurface &surface,
-                    LiteImage::Image2D<uint32_t> &image,
-                    const float4x4 &view, const float4x4 &proj, 
-                    uint32_t seed) {
+                          LiteImage::Image2D<uint32_t> &image,
+                          const float4x4 &view, const float4x4 &proj,
+                          uint32_t seed) {
   std::mt19937 rng(seed);
   std::uniform_real_distribution<float> dist(0.0f, 1.0f);
   float4x4 projInv = inverse4x4(proj);
   float4x4 viewInv = inverse4x4(view);
   for (uint32_t y = 0; y < image.height(); ++y) {
     for (uint32_t x = 0; x < image.width(); ++x) {
-      float4 rayDir4 = EyeRayDir4f(
-          x + 0.5f, y + 0.5f, image.width(),
-          image.height(), projInv);
+      float4 rayDir4 = EyeRayDir4f(x + 0.5f, y + 0.5f, image.width(),
+                                   image.height(), projInv);
       rayDir4.w = 0.0f;
       rayDir4 = viewInv * rayDir4;
 
@@ -403,14 +403,15 @@ void drawNewtonStochastic(const NurbsSurface &surface,
       float relV = (hit.uv.y - vRange.x) / (vRange.y - vRange.x);
 
       float4 outputColor = {relU, relV, 0.0f, 1.0f};
-      image[index2{x, image.height()-y-1}] = LiteMath::color_pack_rgba(outputColor);
+      image[index2{x, image.height() - y - 1}] =
+          LiteMath::color_pack_rgba(outputColor);
     }
   }
 }
 
 void nurbs_rt::NurbsSurface::reparametrizeU(float2 newRange) {
   auto prevRange = uParamsRange();
-  for (auto &knot: m_uKnots) {
+  for (auto &knot : m_uKnots) {
     float relU = (knot - prevRange.x) / (prevRange.y - prevRange.x);
     knot = LiteMath::lerp(newRange.x, newRange.y, relU);
   }
@@ -418,7 +419,7 @@ void nurbs_rt::NurbsSurface::reparametrizeU(float2 newRange) {
 
 void nurbs_rt::NurbsSurface::reparametrizeV(float2 newRange) {
   auto prevRange = vParamsRange();
-  for (auto &knot: m_vKnots) {
+  for (auto &knot : m_vKnots) {
     float relV = (knot - prevRange.x) / (prevRange.y - prevRange.x);
     knot = LiteMath::lerp(newRange.x, newRange.y, relV);
   }
@@ -429,16 +430,18 @@ void nurbs_rt::NurbsSurface::transform(const float4x4 &transformMatrix) {
   uint32_t h = m_controlPointsWeighted.height();
   m_boundingBox.boxMin = float3{std::numeric_limits<float>::min()};
   m_boundingBox.boxMax = float3{std::numeric_limits<float>::max()};
-  for (uint32_t flatId = 0; flatId < w*h; ++flatId) {
+  for (uint32_t flatId = 0; flatId < w * h; ++flatId) {
     auto &point = m_controlPointsWeighted.data()[flatId];
     float weight = point.w;
-    
+
     point /= point.w;
     point = transformMatrix * point;
     point /= point.w;
 
-    m_boundingBox.boxMin = LiteMath::min(m_boundingBox.boxMin, LiteMath::to_float3(point));
-    m_boundingBox.boxMax = LiteMath::max(m_boundingBox.boxMax, LiteMath::to_float3(point));
+    m_boundingBox.boxMin =
+        LiteMath::min(m_boundingBox.boxMin, LiteMath::to_float3(point));
+    m_boundingBox.boxMax =
+        LiteMath::max(m_boundingBox.boxMax, LiteMath::to_float3(point));
 
     point *= weight;
   }
