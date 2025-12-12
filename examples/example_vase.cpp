@@ -50,7 +50,7 @@ int main() {
 
   LiteMath::float4x4 transform = LiteMath::rotate4x4Z(3.14f/8);
   surface.transform(transform);
-  surface.reparametrizeU({3.0f, 8.0f});
+  surface.reparameterizeU({3.0f, 8.0f});
 
   {
     float u = 3.234212455f;

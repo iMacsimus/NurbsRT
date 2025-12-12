@@ -43,8 +43,8 @@ public:
                     const NewtonParameters &params = NewtonParameters{}) const;
   float2 uParamsRange() const;
   float2 vParamsRange() const;
-  void reparametrizeU(float2 newRange);
-  void reparametrizeV(float2 newRange);
+  void reparameterizeU(float2 newRange);
+  void reparameterizeV(float2 newRange);
   void transform(const float4x4 &transformMatrix);
 
 private:

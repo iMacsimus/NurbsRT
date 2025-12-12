@@ -409,7 +409,7 @@ void drawNewtonStochastic(const NurbsSurface &surface,
   }
 }
 
-void nurbs_rt::NurbsSurface::reparametrizeU(float2 newRange) {
+void nurbs_rt::NurbsSurface::reparameterizeU(float2 newRange) {
   auto prevRange = uParamsRange();
   for (auto &knot : m_uKnots) {
     float relU = (knot - prevRange.x) / (prevRange.y - prevRange.x);
@@ -417,7 +417,7 @@ void nurbs_rt::NurbsSurface::reparametrizeU(float2 newRange) {
   }
 }
 
-void nurbs_rt::NurbsSurface::reparametrizeV(float2 newRange) {
+void nurbs_rt::NurbsSurface::reparameterizeV(float2 newRange) {
   auto prevRange = vParamsRange();
   for (auto &knot : m_vKnots) {
     float relV = (knot - prevRange.x) / (prevRange.y - prevRange.x);
