@@ -77,12 +77,12 @@ nurbs_rt::NurbsSurface::NurbsSurface(const Matrix<float3> &controlPoints,
   assert(
       checkKnotsCount(flattenVknots.size(), controlPoints.width()) &&
       "vKnots count is not correct. Supported degrees: [1, MAX_NURBS_DEGREE]");
-
-  uint32_t udeg = flattenUknots.size() - 1 - controlPoints.height();
-  uint32_t vdeg = flattenVknots.size() - 1 - controlPoints.width();
-
-  assert(checkKnotsMults(uMults, udeg) && "uMults is not correct");
-  assert(checkKnotsMults(vMults, vdeg) && "vMults is not correct");
+  assert(checkKnotsMults(uMults,
+                         flattenUknots.size() - 1 - controlPoints.height()) &&
+         "uMults is not correct");
+  assert(checkKnotsMults(vMults,
+                         flattenVknots.size() - 1 - controlPoints.width()) &&
+         "vMults is not correct");
   assert(checkKnotsIsDifferent(uKnots) &&
          "uKnots must be different. Equal knots are encoded via mults "
          "(multiplicity) array");
@@ -130,10 +130,9 @@ uint32_t knotSpan(float t, const float *knots, uint32_t knotsCount,
 }
 
 void calculateBSplineBasis(float t, uint32_t spanId, const float *knots,
-                           uint32_t knotsCount, uint32_t degree, float *basis) {
+                           uint32_t degree, float *basis) {
   // The NURBS Book, 2-nd edition, ALGORITHM A2.2, p. 70
 
-  uint32_t n = knotsCount - degree - 2;
   uint32_t p = degree;
   std::array<float, MAX_NURBS_DEGREE + 1> left = {}, right = {};
 
@@ -158,7 +157,7 @@ T evalNurbsCurve(float t, F pointsGenerator, const float *knots,
 
   std::array<float, MAX_NURBS_DEGREE + 1> basis = {};
   uint32_t spanId = knotSpan(t, knots, knotsCount, degree);
-  calculateBSplineBasis(t, spanId, knots, knotsCount, degree, basis.data());
+  calculateBSplineBasis(t, spanId, knots, degree, basis.data());
 
   T result = T{};
   for (uint32_t i = 0; i <= degree; i++) {
@@ -184,8 +183,6 @@ T evalNurbsCurveDerivative(float t, F pointsGenerator, const float *knots,
 }
 
 float4 nurbs_rt::NurbsSurface::eval4(float u, float v) const {
-  std::array<float, MAX_NURBS_DEGREE + 1> vBasis = {}, uBasis = {};
-
   auto evalCurveV = [this, v](uint32_t uId) {
     return evalNurbsCurve<float4>(
         v,
@@ -206,8 +203,6 @@ float3 nurbs_rt::NurbsSurface::eval(float u, float v) const {
 
 float3 nurbs_rt::NurbsSurface::uDerivative(float u, float v,
                                            float4 point4) const {
-  std::array<float, MAX_NURBS_DEGREE + 1> vBasis = {}, uBasis = {};
-
   auto evalCurveV = [this, v](uint32_t uId) {
     return evalNurbsCurve<float4>(
         v,
@@ -228,8 +223,6 @@ float3 nurbs_rt::NurbsSurface::uDerivative(float u, float v) const {
 
 float3 nurbs_rt::NurbsSurface::vDerivative(float u, float v,
                                            float4 point4) const {
-  std::array<float, MAX_NURBS_DEGREE + 1> vBasis = {}, uBasis = {};
-
   auto evalCurveDerV = [this, v](uint32_t uId) {
     return evalNurbsCurveDerivative<float4>(
         v,
@@ -357,7 +350,8 @@ void drawUniformSamples(const NurbsSurface &surface,
       int x = (int)((point.x + 1) / 2 * image.width());
       int y = (int)((point.y + 1) / 2 * image.height());
 
-      if (!(0 <= x && x < image.width()) || !(0 <= y && y < image.height())) {
+      if (!(0 <= x && x < (int)image.width()) ||
+          !(0 <= y && y < (int)image.height())) {
         continue;
       }
 
