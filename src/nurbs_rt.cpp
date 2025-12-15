@@ -171,11 +171,18 @@ T evalNurbsCurveDerivative(float t, F pointsGenerator, const float *knots,
                            uint32_t knotsCount, uint32_t degree) {
   assert(degree >= 0 && degree <= MAX_NURBS_DEGREE);
 
-  auto derivativePointsGenerator = [&](uint32_t i) -> T {
+  auto derivativePointsGenerator = [&,
+                                    curPoint = float4{}](uint32_t i) mutable {
+    if (curPoint.w == 0) {
+      curPoint = pointsGenerator(i);
+    }
+    auto nextPoint = pointsGenerator(i + 1);
     float p = static_cast<float>(degree);
     float denom = knots[i + degree + 1] - knots[i + 1];
     float coeff = (denom != 0.0f) ? p / denom : 0.0f;
-    return coeff * (pointsGenerator(i + 1) - pointsGenerator(i));
+    auto res = coeff * (nextPoint - curPoint);
+    curPoint = nextPoint;
+    return res;
   };
 
   return evalNurbsCurve<T>(t, derivativePointsGenerator, knots + 1,
